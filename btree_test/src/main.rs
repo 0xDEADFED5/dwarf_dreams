@@ -338,10 +338,7 @@ fn main() {
     tests.push(Test::new(1, 55_000_000, 64000, true, TestType::FlatBtreeZXY));
     tests.push(Test::new(1, 55_000_000, 64000, true, TestType::DeeplyNestedBTree));
     tests.push(Test::new(1, 55_000_000, 64000, true, TestType::NestedBTree));
-    //tests.push(Test::new(5, 1_000_000, 64000, 255, true, false, true));
-    //tests.push(Test::new(1, 100_000_000, 64000, 255, true, true, false));
-    //tests.push(Test::new(1, 100_000_000, 64000, 255, true, false, false));
-
+    
     for test in tests {
         let mut min: Duration = Duration::MAX;
         let mut max: Duration = Duration::ZERO;
