@@ -20,7 +20,7 @@ fn nested_btree_test(width: u16, iterations: u32, serialize: bool) -> Duration {
         // x = rng.gen_range(0..width);
         // y = rng.gen_range(0..width);
         // z = rng.gen_range(0..255);
-        if x  >= width {
+        if x >= width {
             x = 0;
             y += 1;
         }
@@ -196,8 +196,7 @@ fn btree_test(width: u16, iterations: u32, zxy: bool, serialize: bool) -> Durati
         let c = coords.get(x).unwrap();
         if zxy {
             mapz.insert((c.2, c.0, c.1), c.2);
-        }
-        else {
+        } else {
             mapx.insert((c.0, c.1, c.2), c.2);
         }
     }
@@ -334,11 +333,17 @@ impl Test {
 fn main() {
     let mut tests: Vec<Test> = Vec::new();
     let mut results: Vec<String> = Vec::new();
-    tests.push(Test::new(1, 55_000_000, 64000, true, TestType::FlatBtreeXYZ));
-    tests.push(Test::new(1, 55_000_000, 64000, true, TestType::FlatBtreeZXY));
-    tests.push(Test::new(1, 55_000_000, 64000, true, TestType::DeeplyNestedBTree));
-    tests.push(Test::new(1, 55_000_000, 64000, true, TestType::NestedBTree));
-    
+    tests.push(Test::new(5, 2_000_000, 64000, true, TestType::FlatBtreeXYZ));
+    tests.push(Test::new(5, 2_000_000, 64000, true, TestType::FlatBtreeZXY));
+    tests.push(Test::new(
+        1,
+        2_000_000,
+        64000,
+        true,
+        TestType::DeeplyNestedBTree,
+    ));
+    tests.push(Test::new(1, 2_000_000, 64000, true, TestType::NestedBTree));
+
     for test in tests {
         let mut min: Duration = Duration::MAX;
         let mut max: Duration = Duration::ZERO;
@@ -384,8 +389,8 @@ fn main() {
             }
         };
         results.push(format!(
-            "{}: iterations = {}, width = {}, serialize={}\r",
-            name, test.iterations, test.width, test.serialize
+            "{}: # of tests: {}, iterations = {}, width = {}, serialize={}\r",
+            name, test.num_tests,test.iterations, test.width, test.serialize
         ));
         if test.serialize {
             let mib: f64 = (File::metadata(&File::open("test.dat").unwrap())
