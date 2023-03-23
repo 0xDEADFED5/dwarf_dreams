@@ -12,12 +12,12 @@ rand = "0.8.5"
 #tailcall = "0.1.6"
 
 [profile.dev]
-opt-level = 3
-overflow-checks = false
-debug = 2
+opt-level = 1
+overflow-checks = true
+debug = true
 debug-assertions = true
-lto = true
-incremental = true
+lto = false
+incremental = false
 codegen-units = 256
 
 [profile.release]

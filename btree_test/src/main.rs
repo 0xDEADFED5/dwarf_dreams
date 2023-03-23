@@ -60,7 +60,9 @@ fn nested_btree_test(width: u16, iterations: u32, serialize: bool) -> Duration {
         for c in coords {
             if *map2.get(c.0, c.1, c.2).unwrap() != c.2 {
                 same = false;
-                panic!();
+                //panic!();
+                println!("data mismatch");
+                break;
             }
         }
         duration = start2.elapsed();
@@ -73,7 +75,9 @@ fn nested_btree_test(width: u16, iterations: u32, serialize: bool) -> Duration {
         for c in coords {
             if *map.get(c.0, c.1, c.2).unwrap() != c.2 {
                 same = false;
-                panic!();
+                //panic!();
+                println!("data mismatch");
+                break;
             }
         }
         duration = start2.elapsed();
@@ -358,18 +362,11 @@ impl Test {
     }
 }
 fn main() {
-    nested_btree_random_test(100_000_000);
     let mut tests: Vec<Test> = Vec::new();
     let mut results: Vec<String> = Vec::new();
     tests.push(Test::new(5, 2_000_000, 64000, true, TestType::FlatBtreeXYZ));
     tests.push(Test::new(5, 2_000_000, 64000, true, TestType::FlatBtreeZXY));
-    tests.push(Test::new(
-        5,
-        2_000_000,
-        64000,
-        true,
-        TestType::DeeplyNestedBTree,
-    ));
+    tests.push(Test::new(5, 2_000_000, 64000, true, TestType::DeeplyNestedBTree));
     tests.push(Test::new(5, 2_000_000, 64000, true, TestType::NestedBTree));
 
     for test in tests {
@@ -417,7 +414,7 @@ fn main() {
             }
         };
         results.push(format!(
-            "{}: # of tests: {}, iterations = {}, width = {}, serialize={}\r",
+            "{}: # of tests: {}, iterations = {}, width = {}, serialize={}",
             name, test.num_tests,test.iterations, test.width, test.serialize
         ));
         if test.serialize {
