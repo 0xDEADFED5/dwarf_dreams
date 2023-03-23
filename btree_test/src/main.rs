@@ -60,9 +60,7 @@ fn nested_btree_test(width: u16, iterations: u32, serialize: bool) -> Duration {
         for c in coords {
             if *map2.get(c.0, c.1, c.2).unwrap() != c.2 {
                 same = false;
-                //panic!();
-                println!("data mismatch");
-                break;
+                panic!();
             }
         }
         duration = start2.elapsed();
@@ -75,9 +73,7 @@ fn nested_btree_test(width: u16, iterations: u32, serialize: bool) -> Duration {
         for c in coords {
             if *map.get(c.0, c.1, c.2).unwrap() != c.2 {
                 same = false;
-                //panic!();
-                println!("data mismatch");
-                break;
+                panic!();
             }
         }
         duration = start2.elapsed();
