@@ -105,32 +105,32 @@ impl<T> DeeplyNestedBTree<T> {
         }
     }
     #[inline(always)]
-    pub fn get(&self, x: u16, y:u16, z: u8) -> Result<&T, &'static str> {
+    pub fn get(&self, x: u16, y:u16, z: u8) -> Option<&T> {
         let x2a = (x / 256) as u8;
         let x2b = (x % 256) as u8;
         let y2a = (y / 256) as u8;
         let y2b = (y % 256) as u8;
         let child = match self.buf.get(&x2a) {
-            None => return Err("Not found"),
+            None => return None,
             Some(s) => s,
         };
         let child = match child.buf.get(&x2b) {
-            None => return Err("Not found"),
+            None => return None,
             Some(s) => s,
         };
         let child = match child.buf.get(&y2a) {
-            None => return Err("Not found"),
+            None => return None,
             Some(s) => s,
         };
         let child = match child.buf.get(&y2b) {
-            None => return Err("Not found"),
+            None => return None,
             Some(s) => s,
         };
         let child = match child.buf.get(&z) {
-            None => return Err("Not found"),
+            None => return None,
             Some(s) => s,
         };
-        Ok(child)
+        Some(child)
     }
     #[inline(always)]
     pub fn insert(&mut self, x:u16, y:u16, z:u8, value: T) {
