@@ -4,9 +4,170 @@ use std::io;
 use std::io::prelude::*;
 use std::time::{Duration, Instant};
 mod nestedbtree;
+mod genericmap;
+mod slottedmap;
 use crate::nestedbtree::DeeplyNestedBTree;
 use crate::nestedbtree::NestedBTree;
+use crate::genericmap::GenericMap;
+//use slotmap::{SlotMap, SecondaryMap, new_key_type};
 use rand::Rng;
+use slottedmap::SlottedMap;
+
+#[inline(always)]
+fn slot_map_test(width: u16, iterations: u32, serialize: bool) -> Duration {
+    //let mut map: SlotMap<(u16, u16, u8), u8> = SlotMap::with_capacity_and_key((iterations + 1) as usize);
+    let mut map: SlottedMap<(u16, u16, u8), u8> = SlottedMap::with_capacity(iterations as usize);
+    let mut coords: Vec<(u16, u16, u8)> = vec![];
+    let mut x: u16 = 0;
+    let mut y: u16 = 0;
+    let mut z: u8 = 0;
+    //let mut rng = rand::thread_rng();
+    for i in 0..iterations {
+        // x = rng.gen_range(0..width) as u16;
+        // y = rng.gen_range(0..width) as u16;
+        // z = rng.gen_range(0..255);
+        if x >= width {
+            x = 0;
+            y += 1;
+        }
+        if z == 255 {
+            z = 0;
+        }
+        coords.push((x, y, z));
+        x += 1;
+        z += 1;
+    }
+    let start = Instant::now();
+    for x in 0..coords.len() {
+        let c = coords.get(x).unwrap();
+        map.insert((c.0, c.1, c.2), c.2);
+    }
+    let mut duration = start.elapsed();
+    println!("\nslot_map insert finished...{:?} elapsed", duration);
+    if serialize {
+        let start2 = Instant::now();
+        let mut data = bincode::serialize(&map).unwrap();
+        let mut file = File::create("test.dat").unwrap();
+        file.write_all(&data).unwrap();
+        duration = start2.elapsed();
+        println!("slot_map write finished...{:?} elapsed", duration);
+        let start2 = Instant::now();
+        let mut file2 = File::open("test.dat").unwrap();
+        let mut data2: Vec<u8> = vec![];
+        file2.read_to_end(&mut data2).unwrap();
+        let mut map2: SlottedMap<(u16, u16, u8), u8> = SlottedMap::with_capacity(iterations as usize);
+        map2 = bincode::deserialize(&data2).unwrap();
+        duration = start2.elapsed();
+        println!("slot_map read finished...{:?} elapsed", duration);
+        let mut same: bool = true;
+        assert!(coords.len() == iterations as usize);
+        let start2 = Instant::now();
+            for c in coords {
+                if map2.get(&c).unwrap() != &c.2 {
+                    same = false;
+                    panic!();
+                }
+            }
+        duration = start2.elapsed();
+        println!("slot_map compare finished...{:?} elapsed", duration);
+        println!("Data is the same = {}", same);
+    } else {
+        let mut same: bool = true;
+        assert!(coords.len() == iterations as usize);
+        let start2 = Instant::now();
+        
+            for c in coords {
+                if map.get(&c).unwrap() != &c.2 {
+                    same = false;
+                    panic!();
+                }
+            }
+        duration = start2.elapsed();
+        println!("slot_map compare finished...{:?} elapsed", duration);
+        println!("Data is the same = {}", same);
+    }
+    let elapsed = start.elapsed();
+    println!("total elapsed = {:?}, iterations = {}, dimenions = {} X {} X {}, serialize/deserialize = {}",elapsed,iterations,width,width,256,serialize);
+    elapsed
+}
+
+//really frickin slow
+#[inline(always)]
+fn generic_map_test(width: u16, iterations: u32, serialize: bool) -> Duration {
+    let mut map: GenericMap<(u16, u16, u8), u8> = GenericMap::with_capacity((iterations + 1) as usize);
+    let mut coords: Vec<(u16, u16, u8)> = vec![];
+    let mut x: u16 = 0;
+    let mut y: u16 = 0;
+    let mut z: u8 = 0;
+    //let mut rng = rand::thread_rng();
+    for i in 0..iterations {
+        // x = rng.gen_range(0..width) as u16;
+        // y = rng.gen_range(0..width) as u16;
+        // z = rng.gen_range(0..255);
+        if x >= width {
+            x = 0;
+            y += 1;
+        }
+        if z == 255 {
+            z = 0;
+        }
+        coords.push((x, y, z));
+        x += 1;
+        z += 1;
+    }
+    let start = Instant::now();
+    for x in 0..coords.len() {
+        let c = coords.get(x).unwrap();
+        map.insert((c.0, c.1, c.2), c.2);
+    }
+    let mut duration = start.elapsed();
+    println!("\ngeneric_map insert finished...{:?} elapsed", duration);
+    if serialize {
+        let start2 = Instant::now();
+        let mut data = bincode::serialize(&map).unwrap();
+        let mut file = File::create("test.dat").unwrap();
+        file.write_all(&data).unwrap();
+        duration = start2.elapsed();
+        println!("generic_map write finished...{:?} elapsed", duration);
+        let start2 = Instant::now();
+        let mut file2 = File::open("test.dat").unwrap();
+        let mut data2: Vec<u8> = vec![];
+        file2.read_to_end(&mut data2).unwrap();
+        let mut map2: GenericMap<(u16, u16, u8), u8> = GenericMap::with_capacity((iterations + 1) as usize);
+        map2 = bincode::deserialize(&data2).unwrap();
+        duration = start2.elapsed();
+        println!("generic_map read finished...{:?} elapsed", duration);
+        let mut same: bool = true;
+        assert!(coords.len() == iterations as usize);
+        let start2 = Instant::now();
+            for c in coords {
+                if map2.get(&c).unwrap() != &c.2 {
+                    same = false;
+                    panic!();
+                }
+            }
+        duration = start2.elapsed();
+        println!("generic_map compare finished...{:?} elapsed", duration);
+        println!("Data is the same = {}", same);
+    } else {
+        let mut same: bool = true;
+        assert!(coords.len() == iterations as usize);
+        let start2 = Instant::now();
+        
+            for c in coords {
+                if map.get(&c).unwrap() != &c.2 {
+                    same = false;
+                    panic!();
+                }
+            }
+        duration = start2.elapsed();
+        println!("generic_map compare finished...{:?} elapsed", duration);
+        println!("Data is the same = {}", same);
+    }
+    let elapsed = start.elapsed();
+    println!("total elapsed = {:?}, iterations = {}, dimenions = {} X {} X {}, serialize/deserialize = {}",elapsed,iterations,width,width,256,serialize);
+    elapsed
+}
 
 #[inline(always)]
 fn nested_btree_test(width: u16, iterations: u32, serialize: bool) -> Duration {
@@ -183,11 +344,6 @@ fn btree_test(width: u16, iterations: u32, zxy: bool, serialize: bool) -> Durati
             z = 0;
         }
         coords.push((x, y, z));
-        if zxy {
-            mapz.insert((z, x, y), z);
-        } else {
-            mapx.insert((x, y, z), z);
-        }
         x += 1;
         z += 1;
     }
@@ -332,6 +488,8 @@ enum TestType {
     FlatBtreeZXY,
     DeeplyNestedBTree,
     NestedBTree,
+    GenericMap, // really slow
+    SlotMap, // really slow
 }
 struct Test {
     pub num_tests: u32,
@@ -360,11 +518,11 @@ impl Test {
 fn main() {
     let mut tests: Vec<Test> = Vec::new();
     let mut results: Vec<String> = Vec::new();
+    //tests.push(Test::new(5, 2_000_000, 64000, true, TestType::SlotMap));
     tests.push(Test::new(5, 2_000_000, 64000, true, TestType::FlatBtreeXYZ));
     tests.push(Test::new(5, 2_000_000, 64000, true, TestType::FlatBtreeZXY));
     tests.push(Test::new(5, 2_000_000, 64000, true, TestType::DeeplyNestedBTree));
     tests.push(Test::new(5, 2_000_000, 64000, true, TestType::NestedBTree));
-
     for test in tests {
         let mut min: Duration = Duration::MAX;
         let mut max: Duration = Duration::ZERO;
@@ -383,6 +541,12 @@ fn main() {
                 }
                 TestType::FlatBtreeZXY => {
                     val = btree_test(test.width, test.iterations, true, test.serialize);
+                }
+                TestType::GenericMap => {
+                    val = generic_map_test(test.width, test.iterations, test.serialize);
+                }
+                TestType::SlotMap => {
+                    val = slot_map_test(test.width, test.iterations, test.serialize);
                 }
             };
             if val < min {
@@ -407,6 +571,12 @@ fn main() {
             }
             TestType::FlatBtreeZXY => {
                 name = "Results for flat b-tree as ZXY";
+            }
+            TestType::GenericMap => {
+                name = "Results for generic_map";
+            }
+            TestType::SlotMap => {
+                name = "Results for slot map";
             }
         };
         results.push(format!(
