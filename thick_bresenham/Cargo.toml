@@ -1,0 +1,22 @@
+[package]
+name = "thick_bresenham"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nanorand = { version = "0.7.0", features = ["alloc", "std", "tls", "wyrand"] }
+
+[profile.release]
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+panic = 'unwind'
+incremental = true
+rpath = false
+codegen-units = 1
+lto = "fat"
+strip = "debuginfo"
+split-debuginfo = "packed"
